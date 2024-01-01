@@ -20,6 +20,7 @@ void editorMoveCursor(int key);
 
 /* misc */
 
+char buffer[32];
 
 
 
