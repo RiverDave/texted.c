@@ -2,7 +2,6 @@
 #include <asm-generic/errno-base.h>
 #include <asm-generic/ioctls.h>
 #include <assert.h>
-#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,9 +18,6 @@ int editorReadKey();
 void editorMoveCursor(int key);
 
 /* misc */
-
-char buffer[32];
-
 
 
 /* data */
@@ -174,7 +170,7 @@ void editorProcessKeypress(){
     case ARROW_DOWN:
     case ARROW_LEFT:
     case ARROW_RIGHT:
-    editorMoveCursor(c);
+      editorMoveCursor(c);
     break;
   }
 
@@ -231,7 +227,7 @@ void editorRefreshScreen(){ //write 'esc' to the screen
   drawRows(&ab);
 
   char buf[32]; //buff to append to
-  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy + 1, E.cx + 1); //term is indexed starting at 1
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy + 1, E.cx + 1); //term is indexed starting at 1, update cursor
   abAppend(&ab , buf, strlen(buf));
 
 
@@ -273,13 +269,14 @@ int editorReadKey(){
   char c; //byte we're reading to
 
   while((nread == read(STDIN_FILENO, &c, 1) != 1)){
-    if(nread == 1 && errno != EAGAIN)
-      die("read");
+    if(nread == -1 && errno != EAGAIN) die("read");
   }
+  // fflush(stdout); // Flush the stdout buffer to ensure immediate display
 
   //reading arrow sequences:
   if(c == '\x1b'){ 
     char seq[3];
+    printf("Read character: %c(%d)\n", c, c);
 
     if(read(STDIN_FILENO, &seq[0], 1) != 1)return '\x1b';
     if(read(STDIN_FILENO, &seq[1], 1) != 1)return '\x1b';
